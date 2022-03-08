@@ -24,6 +24,10 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $user->update([
+            'ip_address' => $request->ip()
+        ]);
+
         $user->tokens()->where('tokenable_id',  $user->id)->delete();
 
         $token = $user->createToken($request->device_name)->plainTextToken;
@@ -53,7 +57,7 @@ class AuthController extends Controller
             'name' => $request->name,
             'email' => $request->email,
             'password' => Hash::make($request->password),
-
+            'ip_address' => $request->ip(),
         ]);
 
         $token = $user->createToken($request->device_name)->plainTextToken;

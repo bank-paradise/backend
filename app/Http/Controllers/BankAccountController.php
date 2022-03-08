@@ -14,18 +14,8 @@ class BankAccountController extends Controller
      */
     public function index()
     {
-        //
     }
 
-    /**
-     * Show the form for creating a new resource.
-     *
-     * @return \Illuminate\Http\Response
-     */
-    public function create()
-    {
-        //
-    }
 
     /**
      * Store a newly created resource in storage.
@@ -35,7 +25,16 @@ class BankAccountController extends Controller
      */
     public function store(Request $request)
     {
-        //
+        $request->validate([
+            'name' => 'required',
+            'type' => 'required',
+        ]);
+
+        if (!isset(auth()->user()->community_id)) {
+            return response()->json([
+                "error" => "USER_HAS_NO_COMMUNITY",
+            ], 409);
+        }
     }
 
     /**

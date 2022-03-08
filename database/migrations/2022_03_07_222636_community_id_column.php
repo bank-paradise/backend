@@ -18,11 +18,11 @@ return new class extends Migration
                 ->unique();
             $table->string('email')->unique();
             $table->foreignId('community_id')
-                ->constrained()
-                ->nullable();
-            $table->enum('community_role', ['admin', 'moderator', 'member'])->default('member');
+                ->nullable()
+                ->constrained();
+            $table->enum('community_role', ['owner', 'admin', 'moderator', 'member'])->default('member');
             $table->timestamp('email_verified_at')->nullable();
-            $table->ipAddress('visitor');
+            $table->ipAddress('ip_address')->nullable();
             $table->string('password');
             $table->rememberToken();
             $table->timestamps();

@@ -8,4 +8,9 @@ use Illuminate\Database\Eloquent\Model;
 class CommunityInvitation extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'user_id',
+        'community_id',
+    ];
 }
