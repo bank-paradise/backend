@@ -14,5 +14,11 @@ class BankAccount extends Model
         'type',
         'rib',
         'user_id',
+        'community_id',
     ];
+
+    public function user()
+    {
+        return $this->belongsTo(User::class);
+    }
 }

@@ -48,4 +48,14 @@ class User extends Authenticatable
     {
         return $this->belongsTo(Community::class);
     }
+
+    public function invitations()
+    {
+        return $this->hasMany(CommunityInvitation::class);
+    }
+
+    public function bankAccounts()
+    {
+        return $this->hasMany(BankAccount::class);
+    }
 }

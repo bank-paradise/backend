@@ -17,12 +17,8 @@ return new class extends Migration
             $table->id();
             $table->bigInteger('amount')->default(0);
             $table->string('description');
-            $table->foreignId('bank_accounts_id_transmitter')
-                ->constrained()
-                ->onDelete('cascade');
-            $table->foreignId('bank_accounts_id_receiver')
-                ->constrained()
-                ->onDelete('cascade');
+            $table->string('transmitter');
+            $table->string('receiver');
             $table->timestamps();
         });
     }

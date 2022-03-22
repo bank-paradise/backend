@@ -13,5 +13,6 @@ class Community extends Model
         'name',
         'description',
         'limit_of_members',
+        'currency',
     ];
 }

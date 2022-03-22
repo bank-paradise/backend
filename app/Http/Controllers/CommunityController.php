@@ -12,6 +12,68 @@ use Illuminate\Support\Str;
 
 class CommunityController extends Controller
 {
+
+    private function searchAccounts()
+    {
+
+        if (!isset(auth()->user()->community_id)) {
+            return response()->json([
+                'error' => 'USER_NOT_IN_A_COMMUNITY',
+            ], 404);
+        }
+
+        $accountsPerso = [];
+        $accountsPro = [];
+
+        foreach (BankAccount::where('community_id', auth()->user()->community_id)
+            ->where('user_id', '!=', auth()->user()->id)
+            ->where("type", "personnal")->get() as $account) {
+            array_push($accountsPerso, [
+                'name' => $account->user->name,
+                'rib' => $account->rib,
+            ]);
+        }
+
+        foreach (BankAccount::where('community_id', auth()->user()->community_id)
+            ->where("type", "professional")->get() as $account) {
+            array_push($accountsPro, [
+                'name' => $account->user->name,
+                'rib' => $account->rib,
+            ]);
+        }
+
+        return [
+            'personnal' => $accountsPerso,
+            'professional' => $accountsPro,
+        ];
+    }
+
+    public function get()
+    {
+        $invitations = [];
+        foreach (auth()->user()->invitations()->get() as $invitation) {
+            array_push($invitations, [
+                'name' => $invitation->community->name,
+                'info' => $invitation,
+            ]);
+        }
+
+        $accounts = $this->searchAccounts();
+
+        return response()->json([
+            'community' => auth()->user()->community,
+            'invitations' => $invitations,
+            'accounts' => $accounts,
+        ], 200);
+    }
+
+    public function getAccounts()
+    {
+        $accounts = $this->searchAccounts();
+
+        return response()->json($accounts, 200);
+    }
+
     /**
      * Create a new community (owner).
      */
@@ -59,6 +121,93 @@ class CommunityController extends Controller
     }
 
     /**
+     * Join a community (user).
+     */
+    public function join(Request $request)
+    {
+        $request->validate([
+            'accept' => 'required',
+        ]);
+
+
+        $communityInvitation = CommunityInvitation::where('id', $request->id)->first();
+
+        if (!$communityInvitation) {
+            return response()->json([
+                "error" => "USER_NOT_INVITED",
+            ], 404);
+        }
+
+        if ($communityInvitation->user_id != auth()->user()->id) {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+        if (auth()->user()->community_id) {
+            return response()->json([
+                "error" => "USER_ALREADY_IN_A_COMMUNITY",
+            ], 409);
+        }
+
+
+
+
+        if ($request->accept) {
+            auth()->user()->update([
+                'community_id' => $communityInvitation->community_id,
+                'community_role' => 'member',
+            ]);
+
+            $communityInvitation->delete();
+        } else {
+            $communityInvitation->delete();
+        }
+
+        $invitations = [];
+        foreach (auth()->user()->invitations()->get() as $invitation) {
+            array_push($invitations, [
+                'name' => $invitation->community->name,
+                'info' => $invitation,
+            ]);
+        }
+
+        BankAccount::create([
+            'name' => 'Compte Courant',
+            'type' => 'personnal',
+            'rib' => Str::uuid(),
+            'user_id' => auth()->user()->id,
+            'community_id' => $communityInvitation->community_id
+        ]);
+
+        $accountsPerso = [];
+        $accountsPro = [];
+
+        foreach (BankAccount::where('community_id', auth()->user()->community_id)->where("type", "personnal")->get() as $account) {
+            array_push($accountsPerso, [
+                'name' => $account->user->name,
+                'rib' => $account->rib,
+            ]);
+        }
+
+        foreach (BankAccount::where('community_id', auth()->user()->community_id)->where("type", "professional")->get() as $account) {
+            array_push($accountsPro, [
+                'name' => $account->user->name,
+                'rib' => $account->rib,
+            ]);
+        }
+
+        return response()->json([
+            "community" => auth()->user()->community,
+            "invitations" => $invitations,
+            "accounts" => [
+                'personnal' => $accountsPerso,
+                'professional' => $accountsPro,
+            ],
+        ], 200);
+    }
+
+    /**
      * Create a new community (owner).
      */
     public function store(Request $request)
@@ -66,6 +215,7 @@ class CommunityController extends Controller
         $request->validate([
             'name' => 'required',
             'description' => 'required',
+            'currency' => 'required',
         ]);
 
 
@@ -81,6 +231,7 @@ class CommunityController extends Controller
         $community = Community::create([
             'name' => $request->name,
             'description' => $request->description,
+            'currency' => $request->currency,
         ]);
 
         auth()->user()->update([
@@ -89,10 +240,11 @@ class CommunityController extends Controller
         ]);
 
         BankAccount::create([
-            'name' => 'Compte de ' . auth()->user()->name,
+            'name' => 'Compte Courant',
             'type' => 'personnal',
             'rib' => Str::uuid(),
             'user_id' => auth()->user()->id,
+            'community_id' => $community->id,
         ]);
 
         return response()->json([

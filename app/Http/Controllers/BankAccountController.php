@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BankAccount;
+use App\Models\BankTransaction;
 use Illuminate\Http\Request;
 
 class BankAccountController extends Controller
@@ -12,8 +13,27 @@ class BankAccountController extends Controller
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
+    public function get()
     {
+
+        if (!isset(auth()->user()->community_id)) {
+            return response()->json([
+                "error" => "USER_NOT_IN_A_COMMUNITY",
+            ], 404);
+        }
+
+        $accounts = BankAccount::where('user_id', auth()->user()->id)->get();
+
+        $transactions =  BankTransaction::where('transmitter', auth()->user()->id)
+            ->orWhere('receiver', auth()->user()->id)
+            ->orderby('created_at', 'desc')
+            ->get();
+
+        return response()->json([
+            "accounts" => $accounts,
+            "transactions" => $transactions,
+            "currency" => auth()->user()->community->currency
+        ], 200);
     }
 
 

@@ -13,4 +13,9 @@ class CommunityInvitation extends Model
         'user_id',
         'community_id',
     ];
+
+    public function community()
+    {
+        return $this->belongsTo(Community::class);
+    }
 }

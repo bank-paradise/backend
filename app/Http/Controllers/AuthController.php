@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 
+
 class AuthController extends Controller
 {
     public function login(Request $request)
@@ -31,7 +32,6 @@ class AuthController extends Controller
         $user->tokens()->where('tokenable_id',  $user->id)->delete();
 
         $token = $user->createToken($request->device_name)->plainTextToken;
-
 
         return response()->json([
             "token" => $token,
@@ -66,6 +66,13 @@ class AuthController extends Controller
             "token" => $token,
             "user" => $user,
         ], 201);
+    }
+
+    public function me(Request $request)
+    {
+        return response()->json([
+            "user" => auth()->user(),
+        ], 200);
     }
 
     public function logout(Request $request)
