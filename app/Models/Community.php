@@ -13,6 +13,8 @@ class Community extends Model
         'name',
         'description',
         'limit_of_members',
+        'starting_amout',
+        'starting_message',
         'currency',
     ];
 }

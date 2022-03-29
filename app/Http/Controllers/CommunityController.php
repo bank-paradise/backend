@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\BankAccount;
+use App\Models\BankTransaction;
 use App\Models\Community;
 use App\Models\CommunityInvitation;
 use App\Models\User;
@@ -172,12 +173,20 @@ class CommunityController extends Controller
             ]);
         }
 
-        BankAccount::create([
-            'name' => 'Compte Courant',
+        $newAccount = BankAccount::create([
+            'balance' => auth()->user()->community->starting_amout,
+            'name' => auth()->user()->name,
             'type' => 'personnal',
             'rib' => Str::uuid(),
             'user_id' => auth()->user()->id,
             'community_id' => $communityInvitation->community_id
+        ]);
+
+        BankTransaction::create([
+            'amount' => auth()->user()->community->starting_amout,
+            'transmitter' => "COMMUNITY",
+            'receiver' => $newAccount->rib,
+            'description' => auth()->user()->community->starting_message,
         ]);
 
         $accountsPerso = [];
@@ -234,17 +243,27 @@ class CommunityController extends Controller
             'currency' => $request->currency,
         ]);
 
+        $communityCreated = Community::where('id', $community->id)->first();
+
         auth()->user()->update([
             'community_id' => $community->id,
             'community_role' => 'owner',
         ]);
 
-        BankAccount::create([
-            'name' => 'Compte Courant',
+        $newAccount = BankAccount::create([
+            'balance' => $communityCreated->starting_amout,
+            'name' => auth()->user()->name,
             'type' => 'personnal',
             'rib' => Str::uuid(),
             'user_id' => auth()->user()->id,
             'community_id' => $community->id,
+        ]);
+
+        BankTransaction::create([
+            'amount' => $communityCreated->starting_amout,
+            'transmitter' => "COMMUNITY",
+            'receiver' => $newAccount->rib,
+            'description' => $communityCreated->starting_message,
         ]);
 
         return response()->json([

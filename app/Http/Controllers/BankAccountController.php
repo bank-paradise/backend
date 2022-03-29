@@ -24,15 +24,60 @@ class BankAccountController extends Controller
 
         $accounts = BankAccount::where('user_id', auth()->user()->id)->get();
 
-        $transactions =  BankTransaction::where('transmitter', auth()->user()->id)
-            ->orWhere('receiver', auth()->user()->id)
-            ->orderby('created_at', 'desc')
-            ->get();
+        // $transactions =  BankTransaction::where('transmitter', auth()->user()->id)
+        //     ->orWhere('receiver', auth()->user()->id)
+        //     ->orderby('created_at', 'desc')
+        //     ->get();
+
+        $ribs = [];
+        $transactions = [];
+        $incoming_money = 0;
+        $outgoing_money = 0;
+
+        foreach ($accounts as $account) {
+            array_push($ribs, $account->rib);
+        }
+
+        foreach ($ribs as $rib) {
+            $tmp = BankTransaction::where('transmitter', $rib)
+                ->orWhere('receiver', $rib)
+                ->orderby('created_at', 'desc')
+                ->get();
+
+
+            foreach ($tmp as $transaction) {
+                $transmitter = BankAccount::where('rib', $transaction->transmitter)->first();
+                $receiver = BankAccount::where('rib', $transaction->receiver)->first();
+
+                if ($transaction->transmitter == $rib) {
+                    $outgoing_money += $transaction->amount;
+                } else {
+                    $incoming_money += $transaction->amount;
+                }
+
+
+                array_push($transactions, [
+                    'amount' => $transaction->amount,
+                    'transaction' => $transaction,
+                    'transmitter' => $transmitter,
+                    'receiver' => $receiver,
+                    'created_at' => $transaction->created_at,
+                    'id' => $transaction->id,
+                    'description' => $transaction->description,
+                ]);
+            }
+        }
+
+        $transactions = array_reverse($transactions);
 
         return response()->json([
             "accounts" => $accounts,
             "transactions" => $transactions,
-            "currency" => auth()->user()->community->currency
+            "currency" => auth()->user()->community->currency,
+            "statistics" => [
+                "incoming" => $incoming_money,
+                "outgoing" => $outgoing_money
+            ]
         ], 200);
     }
 

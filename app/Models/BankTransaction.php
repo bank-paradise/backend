@@ -14,6 +14,5 @@ class BankTransaction extends Model
         'description',
         'transmitter',
         'receiver',
-
     ];
 }

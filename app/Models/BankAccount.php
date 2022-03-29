@@ -10,6 +10,7 @@ class BankAccount extends Model
     use HasFactory;
 
     protected $fillable = [
+        'balance',
         'name',
         'type',
         'rib',

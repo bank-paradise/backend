@@ -84,7 +84,14 @@ class BankTransactionController extends Controller
         $receiver->save();
 
         $transactionDone = [
-            "transaction" => $transaction,
+            "transaction" => [
+                "amount" => $transaction->amount,
+                "transmitter" => $account,
+                "receiver" => $receiver,
+                "created_at" => $transaction->created_at,
+                "id" => $transaction->id,
+                "description" => $transaction->description,
+            ],
             "transmitter" => $account,
             "receiver" => $receiver,
         ];
@@ -93,7 +100,14 @@ class BankTransactionController extends Controller
         broadcast(new TransactionEvent($transactionDone));
 
         return response()->json([
-            "transaction" => $transaction,
+            "transaction" => [
+                "amount" => $transaction->amount,
+                "transmitter" => $account,
+                "receiver" => $receiver,
+                "created_at" => $transaction->created_at,
+                "id" => $transaction->id,
+                "description" => $transaction->description,
+            ],
             "account" => $account,
             "receiver" => $receiver,
         ], 200);
