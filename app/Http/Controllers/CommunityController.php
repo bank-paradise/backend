@@ -81,7 +81,7 @@ class CommunityController extends Controller
     public function invite(Request $request)
     {
         $request->validate([
-            'name' => 'required',
+            'email' => 'required',
         ]);
 
         if (auth()->user()->community_role != ('owner' || 'admin' || 'moderator')) {
@@ -90,7 +90,7 @@ class CommunityController extends Controller
             ], 409);
         }
 
-        $userInvited = User::where('name', $request->name)->first();
+        $userInvited = User::where('email', $request->email)->first();
 
         if (!$userInvited) {
             return response()->json([
@@ -116,8 +116,7 @@ class CommunityController extends Controller
         ]);
 
         return response()->json([
-            "user_invited" => $userInvited,
-            "community" => auth()->user()->community()->first(),
+            "invitations" => auth()->user()->community->invitations,
         ], 200);
     }
 
@@ -187,6 +186,7 @@ class CommunityController extends Controller
             'transmitter' => "COMMUNITY",
             'receiver' => $newAccount->rib,
             'description' => auth()->user()->community->starting_message,
+            'community_id' => $communityInvitation->community_id,
         ]);
 
         $accountsPerso = [];
@@ -264,6 +264,7 @@ class CommunityController extends Controller
             'transmitter' => "COMMUNITY",
             'receiver' => $newAccount->rib,
             'description' => $communityCreated->starting_message,
+            'community_id' => $community->id,
         ]);
 
         return response()->json([
@@ -271,48 +272,274 @@ class CommunityController extends Controller
         ], 200);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\Community  $community
-     * @return \Illuminate\Http\Response
-     */
-    public function show(Community $community)
+    public function getInvitations()
     {
-        //
+        if (!auth()->user()->community_id) {
+            return response()->json([
+                "error" => "USER_NOT_IN_A_COMMUNITY",
+            ], 404);
+        }
+
+        if (auth()->user()->community_role != ('owner' || 'admin' || 'moderator')) {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+        $invitations = [];
+
+        foreach (auth()->user()->community->invitations()->get() as $invitation) {
+            $user = User::where('id', $invitation->user_id)->first();
+            array_push($invitations, [
+                'id' => $invitation->id,
+                'name' => $user->name,
+                'email' => $user->email,
+                'created_at' => $invitation->created_at,
+            ]);
+        }
+
+        return response()->json([
+            "invitations" => $invitations,
+        ], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\Community  $community
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(Community $community)
+    public function getTransactions()
     {
-        //
+        if (!auth()->user()->community_id) {
+            return response()->json([
+                "error" => "USER_NOT_IN_A_COMMUNITY",
+            ], 404);
+        }
+
+        if (auth()->user()->community_role != ('owner' || 'admin' || 'moderator')) {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+        $transactions = [];
+
+        foreach (auth()->user()->community->transactions()->get() as $transaction) {
+
+            $transmitter = BankAccount::where('rib', $transaction->transmitter)->first();
+            $reciever = BankAccount::where('rib', $transaction->receiver)->first();
+
+            if ($transaction->transmitter == "COMMUNITY") {
+                $transmitter = [
+                    "name" => auth()->user()->community->name
+                ];
+            }
+            if ($transaction->receiver == "COMMUNITY") {
+                $reciever = [
+                    "name" => auth()->user()->community->name
+                ];
+            }
+
+            array_push($transactions, [
+                'id' => $transaction->id,
+                'amount' => $transaction->amount,
+                'currency' => auth()->user()->community->currency,
+                'transmitter' => $transmitter['name'],
+                'receiver' =>  $reciever['name'],
+                'description' => $transaction->description,
+                'created_at' => $transaction->created_at,
+            ]);
+        }
+
+        return response()->json([
+            "transactions" => $transactions,
+        ], 200);
     }
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\Community  $community
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, Community $community)
+    public function update(Request $request)
     {
-        //
+        $community = auth()->user()->community()->first();
+
+        if (auth()->user()->community_role != 'owner') {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+        $request->validate([
+            'name' => 'required',
+            'description' => 'required',
+            'currency' => 'required',
+            'starting_amout' => 'required',
+            'starting_message' => 'required',
+        ]);
+
+        $community->update([
+            'name' => $request->name,
+            'description' => $request->description,
+            'currency' => $request->currency,
+            'starting_amout' => $request->starting_amout,
+            'starting_message' => $request->starting_message,
+        ]);
+
+        return response()->json([
+            "community" => $community,
+        ], 200);
     }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\Community  $community
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(Community $community)
+    public function getMembers()
     {
-        //
+        if (!auth()->user()->community_id) {
+            return response()->json([
+                "error" => "USER_NOT_IN_A_COMMUNITY",
+            ], 404);
+        }
+
+        if (auth()->user()->community_role != ('owner' || 'admin' || 'moderator')) {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+        $members = [];
+
+        foreach (auth()->user()->community->members()->get() as $member) {
+            array_push($members, [
+                'id' => $member->id,
+                'name' => $member->name,
+                'email' => $member->email,
+                'role' => $member->community_role,
+            ]);
+        }
+
+        return response()->json([
+            "members" => $members,
+        ], 200);
+    }
+
+    public function changeRole(Request $request)
+    {
+
+        if (!auth()->user()->community_id) {
+            return response()->json([
+                "error" => "USER_NOT_IN_A_COMMUNITY",
+            ], 404);
+        }
+
+        if (auth()->user()->community_role == 'member') {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+
+        if (auth()->user()->community_role == 'moderator') {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+        $request->validate([
+            'user_id' => 'required',
+            'role' => 'required',
+        ]);
+
+        $user = User::where('id', $request->user_id)->first();
+
+        if (!$user) {
+            return response()->json([
+                "error" => "USER_NOT_FOUND",
+            ], 404);
+        }
+
+        if (auth()->user()->community_role == "owner" && $user->community_role == "owner") {
+            $nbOwner = auth()->user()->community->members()->where('community_role', 'owner')->count();
+            if ($nbOwner == 1) {
+                return response()->json([
+                    "error" => "CANNOT_CHANGE_ROLE_ONLY_ONE_OWNER",
+                ], 409);
+            }
+        }
+
+        if (auth()->user()->community_role == 'admin' && $user->community_role == 'owner') {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+
+
+        if ($user->community_id != auth()->user()->community_id) {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+        $user->update([
+            'community_role' => $request->role,
+        ]);
+
+        return response()->json([
+            "user" => $user,
+        ], 200);
+    }
+
+    public function kickMember(Request $request)
+    {
+
+        if (!auth()->user()->community_id) {
+            return response()->json([
+                "error" => "USER_NOT_IN_A_COMMUNITY",
+            ], 404);
+        }
+
+        if (auth()->user()->community_role != ('owner' || 'admin' || 'moderator')) {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+        $request->validate([
+            'user_id' => 'required',
+        ]);
+
+        $user = User::where('id', $request->user_id)->first();
+
+        if (!$user) {
+            return response()->json([
+                "error" => "USER_NOT_FOUND",
+            ], 404);
+        }
+
+        if ($user->community_id != auth()->user()->community_id) {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+        if ($user->community_role == 'owner' && auth()->user()->community_role != 'owner') {
+            return response()->json([
+                "error" => "CANNOT_KICK_OWNER",
+            ], 409);
+        }
+
+        if ($user->community_role == 'admin' && auth()->user()->community_role != ('owner')) {
+            return response()->json([
+                "error" => "CANNOT_KICK_ADMIN",
+            ], 409);
+        }
+
+        if ($user->community_role == 'moderator' && auth()->user()->community_role != ('owner' || 'admin')) {
+            return response()->json([
+                "error" => "CANNOT_KICK_MODERATOR",
+            ], 409);
+        }
+
+        $user->update([
+            'community_role' => 'member',
+            'community_id' => null,
+        ]);
+
+
+        $user->bankAccounts()->delete();
+
+        return response()->json([
+            "user" => $user,
+        ], 200);
     }
 }

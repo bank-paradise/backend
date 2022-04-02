@@ -38,10 +38,21 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post("/auth/logout", [AuthController::class, 'logout']);
 
     Route::get('community', [CommunityController::class, 'get']);
+    Route::put('community', [CommunityController::class, 'update']);
     Route::post('community', [CommunityController::class, 'store']);
-    Route::post('community/invite', [CommunityController::class, 'invite']);
     Route::post('community/invite/{id}', [CommunityController::class, 'join']);
     Route::post('community/accounts', [CommunityController::class, 'getAccounts']);
+
+    /**
+     * Staff route
+     */
+    Route::get('community/invitations', [CommunityController::class, 'getInvitations']);
+    Route::get('community/transactions', [CommunityController::class, 'getTransactions']);
+    Route::get('community/members', [CommunityController::class, 'getMembers']);
+    Route::post('community/invite', [CommunityController::class, 'invite']);
+    Route::post('community/transactions/inject', [BankTransactionController::class, 'injectMoney']);
+    Route::put('community/role', [CommunityController::class, 'changeRole']);
+    Route::post('community/kick', [CommunityController::class, 'kickMember']);
 });
 
 /**

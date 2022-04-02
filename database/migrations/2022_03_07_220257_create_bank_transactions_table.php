@@ -15,10 +15,13 @@ return new class extends Migration
     {
         Schema::create('bank_transactions', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('amount')->default(0);
+            $table->float('amount', 12, 2)->default(0);
             $table->string('description');
             $table->string('transmitter');
             $table->string('receiver');
+            $table->foreignId('community_id')
+                ->constrained()
+                ->onDelete('cascade');
             $table->timestamps();
         });
     }

@@ -15,7 +15,7 @@ return new class extends Migration
     {
         Schema::create('bank_accounts', function (Blueprint $table) {
             $table->id();
-            $table->bigInteger('balance')->default(0);
+            $table->float('balance', 12, 2)->default(0);
             $table->string('name');
             $table->uuid('rib')
                 ->unique();

@@ -17,4 +17,24 @@ class Community extends Model
         'starting_message',
         'currency',
     ];
+
+    public function invitations()
+    {
+        return $this->hasMany(CommunityInvitation::class);
+    }
+
+    public function members()
+    {
+        return $this->hasMany(User::class);
+    }
+
+    public function bankAccounts()
+    {
+        return $this->hasMany(BankAccount::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(BankTransaction::class);
+    }
 }
