@@ -269,6 +269,7 @@ class CommunityController extends Controller
 
         return response()->json([
             "community" => $community,
+            "user" => auth()->user(),
         ], 200);
     }
 
@@ -536,7 +537,9 @@ class CommunityController extends Controller
         ]);
 
 
-        $user->bankAccounts()->delete();
+        $user->bankAccounts()->update([
+            'user_id' => null,
+        ]);
 
         return response()->json([
             "user" => $user,

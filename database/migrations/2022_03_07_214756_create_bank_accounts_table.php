@@ -21,6 +21,7 @@ return new class extends Migration
                 ->unique();
             $table->enum('type', ['personnal', 'professional'])->default('personnal');
             $table->foreignId('user_id')
+                ->nullable()
                 ->constrained()
                 ->onDelete('cascade');
             $table->foreignId('community_id')
