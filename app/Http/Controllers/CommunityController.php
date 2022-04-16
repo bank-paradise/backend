@@ -38,7 +38,7 @@ class CommunityController extends Controller
         foreach (BankAccount::where('community_id', auth()->user()->community_id)
             ->where("type", "professional")->get() as $account) {
             array_push($accountsPro, [
-                'name' => $account->user->name,
+                'name' => $account->name,
                 'rib' => $account->rib,
             ]);
         }

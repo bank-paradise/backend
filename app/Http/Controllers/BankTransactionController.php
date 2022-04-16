@@ -117,6 +117,7 @@ class BankTransactionController extends Controller
 
     public function injectMoney(Request $request)
     {
+        // retirer en anglais
         $request->validate([
             'amount' => 'required',
             'receiver' => 'required',   // rib receiver
