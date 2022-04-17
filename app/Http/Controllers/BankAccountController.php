@@ -5,11 +5,13 @@ namespace App\Http\Controllers;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
 use App\Models\CompanyEmployees;
+use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
 class BankAccountController extends Controller
 {
+
 
     public function get()
     {
@@ -33,7 +35,7 @@ class BankAccountController extends Controller
                     "type" => $account->type,
                     "user_id" => $account->user_id,
                     "community_id" => $account->community_id,
-                    "employees" => $employees,
+                    "employees" => $this->getEmployees($account->id),
                 ]);
             } else {
                 array_push($accounts, [
@@ -85,6 +87,9 @@ class BankAccountController extends Controller
             }
         }
 
+        // trouver les transactions en double et les supprimer
+        $transactions = $this->removeDuplicates($transactions);
+
         $transactions = array_reverse($transactions);
 
         return response()->json([
@@ -96,6 +101,17 @@ class BankAccountController extends Controller
                 "outgoing" => $outgoing_money
             ]
         ], 200);
+    }
+
+    public function removeDuplicates($transactions)
+    {
+        $tmp = [];
+        foreach ($transactions as $transaction) {
+            if (!in_array($transaction, $tmp)) {
+                array_push($tmp, $transaction);
+            }
+        }
+        return $tmp;
     }
 
     public function getAllAccounts()
@@ -114,6 +130,20 @@ class BankAccountController extends Controller
             "personnal" => $persoAccounts,
             "professional" => $profAccounts
         ], 200);
+    }
+
+    // fonction qui decode les employés et cherche leur pseudo selon leur id
+    public function getEmployees($id)
+    {
+        $employees = CompanyEmployees::where('bank_account_id', $id)->first();
+        $employees = json_decode($employees->employees);
+        $employees = array_map(function ($employee) {
+            $user = User::find($employee->user_id);
+            $employee->pseudo = $user->name;
+            return $employee;
+        }, $employees);
+
+        return $employees;
     }
 
     public function createCompanyAccount(Request $request)
@@ -142,12 +172,19 @@ class BankAccountController extends Controller
         $account->community_id = auth()->user()->community_id;
         $account->save();
 
+        $date = new \DateTime();
+        $date->modify('-1 day');
+        $date->setTimezone(new \DateTimeZone('Europe/Paris'));
+        $date = $date->format('Y-m-d H:i:s');
+
+        $personalAccount = BankAccount::where('user_id', auth()->user()->id)->where('type', 'personnal')->first();
         $employees = [
             [
                 'user_id' => auth()->user()->id,
+                'rib' => $personalAccount->rib,
                 'grade' => 'owner',
                 'salary' => 0,
-                'last_payment' => date('Y-m-d', strtotime('-1 day')),
+                'last_payment' => $date,
             ]
         ];
 
@@ -155,6 +192,7 @@ class BankAccountController extends Controller
         $company->bank_account_id = $account->id;
         $company->employees = json_encode($employees);
         $company->save();
+
 
         return response()->json([
             "account" => [
@@ -165,7 +203,7 @@ class BankAccountController extends Controller
                 "type" => $account->type,
                 "user_id" => $account->user_id,
                 "community_id" => $account->community_id,
-                "employees" => $company,
+                "employees" => $this->getEmployees($account->id),
             ],
         ], 200);
     }

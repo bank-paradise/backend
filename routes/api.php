@@ -61,6 +61,10 @@ Route::middleware('auth:sanctum')->group(function () {
  */
 Route::middleware('auth:sanctum')->group(function () {
     Route::get('bank', [BankAccountController::class, 'get']);
-    Route::post('bank/company', [BankAccountController::class, 'createCompanyAccount']);
     Route::post('bank/transaction', [BankTransactionController::class, 'store']);
+
+    // Company routes
+    Route::post('bank/company', [BankAccountController::class, 'createCompanyAccount']);
+    Route::post('bank/company/salary', [BankTransactionController::class, 'sendSalary']);
+    Route::put('bank/company/salary', [BankTransactionController::class, 'changeSalary']);
 });

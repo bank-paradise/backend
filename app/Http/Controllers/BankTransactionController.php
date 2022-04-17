@@ -6,6 +6,7 @@ use App\Events\TransactionEvent;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
 use App\Models\Community;
+use App\Models\CompanyEmployees;
 use Illuminate\Http\Request;
 
 class BankTransactionController extends Controller
@@ -183,48 +184,141 @@ class BankTransactionController extends Controller
         ], 200);
     }
 
-    /**
-     * Display the specified resource.
-     *
-     * @param  \App\Models\BankTransaction  $bankTransaction
-     * @return \Illuminate\Http\Response
-     */
-    public function show(BankTransaction $bankTransaction)
+    public function sendSalary(Request $request)
     {
-        //
+        $request->validate([
+            'company_id' => 'required',
+            'amount' => 'required',
+            'receiver' => 'required',   // rib receiver
+        ]);
+
+        if (!isset(auth()->user()->community_id)) {
+            return response()->json([
+                "error" => "USER_NOT_IN_A_COMMUNITY",
+            ], 404);
+        }
+
+        $companyAccount = BankAccount::where('community_id', auth()->user()->community_id)->where('id', $request->company_id)->first();
+
+        if (!$companyAccount) {
+            return response()->json([
+                "error" => "COMPANY_NOT_FOUND",
+            ], 404);
+        }
+
+        if ($companyAccount->user_id != auth()->user()->id) {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 404);
+        }
+
+        if ($companyAccount->balance < $request->amount) {
+            return response()->json([
+                "error" => "INSUFFICIENT_FUNDS",
+            ], 404);
+        }
+
+        $receiver = BankAccount::where('rib', $request->receiver)->where('community_id', auth()->user()->community_id)->first();
+
+        if (!$receiver) {
+            return response()->json([
+                "error" => "RECEIVER_NOT_FOUND",
+            ], 404);
+        }
+
+        $transaction = new BankTransaction();
+        $transaction->amount = $request->amount;
+        $transaction->transmitter = $companyAccount->rib;
+        $transaction->receiver = $receiver->rib;
+        $transaction->description = "Salaire de la société " . $companyAccount->name;
+        $transaction->community_id = auth()->user()->community_id;
+        $transaction->save();
+
+        $companyAccount->balance -= $request->amount;
+        $companyAccount->save();
+
+        $receiver->balance += $request->amount;
+        $receiver->save();
+
+        $company = CompanyEmployees::where('bank_account_id', $companyAccount->id)->first();
+
+        $date = new \DateTime();
+        $date->setTimezone(new \DateTimeZone('Europe/Paris'));
+        $date = $date->format('Y-m-d H:i:s');
+        $employees = json_decode($company->employees);
+        foreach ($employees as $employee) {
+            if ($employee->rib == $receiver->rib) {
+                $employee->last_payment = $date;
+            }
+        }
+        $company->employees = json_encode($employees);
+        $company->save();
+
+        $transactionDone = [
+            "amount" => $transaction->amount,
+            "receiver" => $receiver,
+        ];
+        broadcast(new TransactionEvent($transactionDone));
+
+        return response()->json([
+            "account" => [
+                "id" => $companyAccount->id,
+                "balance" => $companyAccount->balance,
+                "name" => $companyAccount->name,
+                "rib" => $companyAccount->rib,
+                "user_id" => $companyAccount->user_id,
+                "community_id" => $companyAccount->community_id,
+                "employees" => $employees,
+            ]
+        ], 200);
     }
 
-    /**
-     * Show the form for editing the specified resource.
-     *
-     * @param  \App\Models\BankTransaction  $bankTransaction
-     * @return \Illuminate\Http\Response
-     */
-    public function edit(BankTransaction $bankTransaction)
+    public function changeSalary(Request $request)
     {
-        //
-    }
+        $request->validate([
+            'company_id' => 'required',
+            'amount' => 'required',
+            'user_id' => 'required',
+        ]);
 
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  \App\Models\BankTransaction  $bankTransaction
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, BankTransaction $bankTransaction)
-    {
-        //
-    }
+        if (!isset(auth()->user()->community_id)) {
+            return response()->json([
+                "error" => "USER_NOT_IN_A_COMMUNITY",
+            ], 404);
+        }
 
-    /**
-     * Remove the specified resource from storage.
-     *
-     * @param  \App\Models\BankTransaction  $bankTransaction
-     * @return \Illuminate\Http\Response
-     */
-    public function destroy(BankTransaction $bankTransaction)
-    {
-        //
+        $employees = CompanyEmployees::where('bank_account_id', $request->company_id)->first();
+
+        if (!$employees) {
+            return response()->json([
+                "error" => "COMPANY_NOT_FOUND",
+            ], 404);
+        }
+
+        $employees = json_decode($employees->employees);
+
+        foreach ($employees as $employee) {
+            if ($employee->user_id == $request->user_id) {
+                $employee->salary = $request->amount;
+            }
+        }
+
+        $employees = json_encode($employees);
+
+        $company = CompanyEmployees::where('bank_account_id', $request->company_id)->first();
+        $company->employees = $employees;
+        $company->save();
+
+        return response()->json([
+            "account" => [
+                "id" => $company->bank_account_id,
+                "balance" => $company->balance,
+                "name" => $company->name,
+                "rib" => $company->rib,
+                "user_id" => $company->user_id,
+                "community_id" => $company->community_id,
+                "employees" => $employees,
+            ]
+        ], 200);
     }
 }
