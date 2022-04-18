@@ -4,8 +4,10 @@ use App\Http\Controllers\{
     CommunityController,
     BankTransactionController,
     BankAccountController,
-    AuthController
+    AuthController,
+    CompanyEmployeesController
 };
+use App\Models\CompanyEmployees;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -65,6 +67,8 @@ Route::middleware('auth:sanctum')->group(function () {
 
     // Company routes
     Route::post('bank/company', [BankAccountController::class, 'createCompanyAccount']);
+    Route::delete('bank/company/{id}', [BankAccountController::class, 'removeCompany']);
     Route::post('bank/company/salary', [BankTransactionController::class, 'sendSalary']);
     Route::put('bank/company/salary', [BankTransactionController::class, 'changeSalary']);
+    Route::post('bank/company/employee', [CompanyEmployeesController::class, 'addEmployee']);
 });

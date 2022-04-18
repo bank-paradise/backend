@@ -135,15 +135,23 @@ class BankAccountController extends Controller
     // fonction qui decode les employés et cherche leur pseudo selon leur id
     public function getEmployees($id)
     {
-        $employees = CompanyEmployees::where('bank_account_id', $id)->first();
-        $employees = json_decode($employees->employees);
-        $employees = array_map(function ($employee) {
-            $user = User::find($employee->user_id);
-            $employee->pseudo = $user->name;
-            return $employee;
-        }, $employees);
+        $employees = CompanyEmployees::where('bank_account_id', $id)->get();
+        $employees_array = [];
 
-        return $employees;
+        foreach ($employees as $employee) {
+            $user = User::where('id', $employee->user_id)->first();
+            array_push($employees_array, [
+                "id" => $employee->id,
+                "user_id" => $employee->user_id,
+                "pseudo" => $user->name,
+                "grade" => $employee->grade,
+                "last_payment" => $employee->last_payment,
+                "salary" => $employee->salary,
+                "rib" => $employee->rib,
+            ]);
+        }
+
+        return $employees_array;
     }
 
     public function createCompanyAccount(Request $request)
@@ -173,26 +181,18 @@ class BankAccountController extends Controller
         $account->save();
 
         $date = new \DateTime();
-        $date->modify('-1 day');
+        $date->modify('-12 hours');
         $date->setTimezone(new \DateTimeZone('Europe/Paris'));
-        $date = $date->format('Y-m-d H:i:s');
 
         $personalAccount = BankAccount::where('user_id', auth()->user()->id)->where('type', 'personnal')->first();
-        $employees = [
-            [
-                'user_id' => auth()->user()->id,
-                'rib' => $personalAccount->rib,
-                'grade' => 'owner',
-                'salary' => 0,
-                'last_payment' => $date,
-            ]
-        ];
 
         $company = new CompanyEmployees();
         $company->bank_account_id = $account->id;
-        $company->employees = json_encode($employees);
+        $company->user_id = auth()->user()->id;
+        $company->grade = 'boss';
+        $company->last_payment = $date;
+        $company->rib = $personalAccount->rib;
         $company->save();
-
 
         return response()->json([
             "account" => [
@@ -204,6 +204,42 @@ class BankAccountController extends Controller
                 "user_id" => $account->user_id,
                 "community_id" => $account->community_id,
                 "employees" => $this->getEmployees($account->id),
+            ],
+        ], 200);
+    }
+
+    public function removeCompany(Request $request)
+    {
+
+        if (!isset(auth()->user()->community_id)) {
+            return response()->json([
+                "error" => "USER_HAS_NO_COMMUNITY",
+            ], 409);
+        }
+
+        $company = BankAccount::where('id', $request->id)->first();
+
+        if ($company->user_id != auth()->user()->id) {
+            return response()->json([
+                "error" => "USER_HAS_NO_PERMISSION",
+            ], 409);
+        }
+
+        $company->user_id = null;
+        $company->name = $company->name . '_' . time() . ' (fermé)';
+        $company->save();
+
+        $company->employees()->delete();
+
+        return response()->json([
+            "account" => [
+                "id" => $company->id,
+                "balance" => $company->balance,
+                "name" => $company->name,
+                "rib" => $company->rib,
+                "type" => $company->type,
+                "user_id" => $company->user_id,
+                "community_id" => $company->community_id,
             ],
         ], 200);
     }

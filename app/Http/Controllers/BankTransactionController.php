@@ -230,7 +230,7 @@ class BankTransactionController extends Controller
         $transaction->amount = $request->amount;
         $transaction->transmitter = $companyAccount->rib;
         $transaction->receiver = $receiver->rib;
-        $transaction->description = "Salaire de la société " . $companyAccount->name;
+        $transaction->description = "Salaire " . $companyAccount->name;
         $transaction->community_id = auth()->user()->community_id;
         $transaction->save();
 
@@ -240,19 +240,13 @@ class BankTransactionController extends Controller
         $receiver->balance += $request->amount;
         $receiver->save();
 
-        $company = CompanyEmployees::where('bank_account_id', $companyAccount->id)->first();
+        $employee = CompanyEmployees::where('bank_account_id', $companyAccount->id)->where('rib', $receiver->rib)->first();
 
         $date = new \DateTime();
         $date->setTimezone(new \DateTimeZone('Europe/Paris'));
-        $date = $date->format('Y-m-d H:i:s');
-        $employees = json_decode($company->employees);
-        foreach ($employees as $employee) {
-            if ($employee->rib == $receiver->rib) {
-                $employee->last_payment = $date;
-            }
-        }
-        $company->employees = json_encode($employees);
-        $company->save();
+
+        $employee->last_payment = $date;
+        $employee->save();
 
         $transactionDone = [
             "amount" => $transaction->amount,
@@ -268,7 +262,7 @@ class BankTransactionController extends Controller
                 "rib" => $companyAccount->rib,
                 "user_id" => $companyAccount->user_id,
                 "community_id" => $companyAccount->community_id,
-                "employees" => $employees,
+                "employees" => $companyAccount->employees(),
             ]
         ], 200);
     }
@@ -287,27 +281,26 @@ class BankTransactionController extends Controller
             ], 404);
         }
 
-        $employees = CompanyEmployees::where('bank_account_id', $request->company_id)->first();
+        $company = BankAccount::where('id', $request->company_id)->first();
 
-        if (!$employees) {
+        if (!$company) {
             return response()->json([
                 "error" => "COMPANY_NOT_FOUND",
             ], 404);
         }
 
-        $employees = json_decode($employees->employees);
+        $employee = CompanyEmployees::where('bank_account_id', $request->company_id,)
+            ->where('user_id', $request->user_id)->first();
 
-        foreach ($employees as $employee) {
-            if ($employee->user_id == $request->user_id) {
-                $employee->salary = $request->amount;
-            }
+        if (!$employee) {
+            return response()->json([
+                "error" => "EMPLOYEE_NOT_FOUND",
+            ], 404);
         }
 
-        $employees = json_encode($employees);
+        $employee->salary = $request->amount;
+        $employee->save();
 
-        $company = CompanyEmployees::where('bank_account_id', $request->company_id)->first();
-        $company->employees = $employees;
-        $company->save();
 
         return response()->json([
             "account" => [
@@ -317,7 +310,7 @@ class BankTransactionController extends Controller
                 "rib" => $company->rib,
                 "user_id" => $company->user_id,
                 "community_id" => $company->community_id,
-                "employees" => $employees,
+                "employees" => $company->employees(),
             ]
         ], 200);
     }

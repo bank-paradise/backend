@@ -22,4 +22,19 @@ class BankAccount extends Model
     {
         return $this->belongsTo(User::class);
     }
+
+    public function community()
+    {
+        return $this->belongsTo(Community::class);
+    }
+
+    public function transactions()
+    {
+        return $this->hasMany(BankTransaction::class);
+    }
+
+    public function employees()
+    {
+        return $this->hasMany(CompanyEmployees::class);
+    }
 }

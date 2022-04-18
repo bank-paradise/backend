@@ -16,17 +16,16 @@ return new class extends Migration
         Schema::create('company_employees', function (Blueprint $table) {
             $table->id();
             $table->foreignId('bank_account_id')
-                ->unique()
                 ->constrained()
                 ->onDelete('cascade');
-            /**
-             * - user_id (int)
-             * - grade (string)
-             * - salary (float)
-             * - last_payment (date)
-             */
-            $table->longText('employees')
-                ->nullable();
+            $table->foreignId('user_id')
+                ->nullable()
+                ->constrained()
+                ->onDelete('cascade');
+            $table->enum('grade', ['boss', 'manager', 'employee'])->default('employee');
+            $table->timestamp("last_payment", $precision = 0);
+            $table->float("salary")->default(1000);
+            $table->uuid('rib');
             $table->timestamps();
         });
     }
