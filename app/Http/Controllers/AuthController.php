@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UserRegistered;
+use App\Models\UserLocations;
 use PhpParser\Node\Stmt\TryCatch;
 use Illuminate\Support\Facades\Http;
 
@@ -28,17 +29,23 @@ class AuthController extends Controller
             ], 401);
         }
 
+        $locationExists = UserLocations::where('ipv4', $request->ip())->where('user_id', $user->id)->first();
+        $location = $this->getLocalization($request->ip());
 
 
-        $response = Http::get('https://geolocation-db.com/json/' . $request->ip());
-
-        $ip_data = $response->json();
-
-        $ip = $ip_data['IPv4'] === "Not found" ? null : $ip_data['IPv4'];
-
-        $user->update([
-            'ip_address' => $ip
-        ]);
+        if (!$locationExists && $location) {
+            UserLocations::create([
+                'user_id' => $user->id,
+                'ipv4' => $location['ipv4'],
+                'country_code' => $location['country_code'],
+                'country_name' => $location['country_name'],
+                'city' => $location['city'],
+                'postal' => $location['postal'],
+                'latitude' => $location['latitude'],
+                'longitude' => $location['longitude'],
+                'state' => $location['state'],
+            ]);
+        }
 
         $user->tokens()->where('tokenable_id',  $user->id)->delete();
 
@@ -46,8 +53,7 @@ class AuthController extends Controller
 
         return response()->json([
             "token" => $token,
-            "user" => $user,
-            "ip" => $ip_data
+            "user" => $user
         ], 200);
     }
 
@@ -91,6 +97,22 @@ class AuthController extends Controller
             'ip_address' => $request->ip(),
         ]);
 
+        $location = $this->getLocalization($request->ip());
+
+        if ($location) {
+            UserLocations::create([
+                'user_id' => $user->id,
+                'ipv4' => $location['ipv4'],
+                'country_code' => $location['country_code'],
+                'country_name' => $location['country_name'],
+                'city' => $location['city'],
+                'postal' => $location['postal'],
+                'latitude' => $location['latitude'],
+                'longitude' => $location['longitude'],
+                'state' => $location['state'],
+            ]);
+        }
+
         $token = $user->createToken($request->device_name)->plainTextToken;
 
         return response()->json([
@@ -104,6 +126,19 @@ class AuthController extends Controller
         return response()->json([
             "user" => auth()->user(),
         ], 200);
+    }
+
+    public function getLocalization($ip)
+    {
+        $response = Http::get('https://geolocation-db.com/json/' . $ip);
+
+        $ip_data = $response->json();
+
+        if ($ip_data['IPv4'] === "Not found") {
+            return null;
+        } else {
+            return $ip_data;
+        }
     }
 
     public function logout(Request $request)

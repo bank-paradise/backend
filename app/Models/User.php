@@ -44,6 +44,11 @@ class User extends Authenticatable
         'email_verified_at' => 'datetime',
     ];
 
+    public function locations()
+    {
+        return $this->hasMany(UserLocations::class);
+    }
+
     public function community()
     {
         return $this->belongsTo(Community::class);
