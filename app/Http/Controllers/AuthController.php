@@ -5,7 +5,10 @@ namespace App\Http\Controllers;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
-
+use Illuminate\Support\Facades\Mail;
+use App\Mail\UserRegistered;
+use PhpParser\Node\Stmt\TryCatch;
+use Illuminate\Support\Facades\Http;
 
 class AuthController extends Controller
 {
@@ -25,6 +28,12 @@ class AuthController extends Controller
             ], 401);
         }
 
+
+
+        $response = Http::get('https://geolocation-db.com/json/' . $request->ip());
+
+        $ip_data = $response->json();
+
         $user->update([
             'ip_address' => $request->ip()
         ]);
@@ -36,6 +45,8 @@ class AuthController extends Controller
         return response()->json([
             "token" => $token,
             "user" => $user,
+            "ip" => $ip_data,
+            "ip_address" => $request->ip(),
         ], 200);
     }
 
@@ -59,6 +70,19 @@ class AuthController extends Controller
         if ($nameExists) {
             return response()->json(["error" => "USER_NAME_ALREADY_REGISTED"], 409);
         }
+
+        try {
+            $mailParams = [
+                'subject' => 'Bienvenue sur Bank-Paradise',
+                'mail' => "noreply@bank-paradise.fr",
+                'name' => "Bank-Paradise",
+            ];
+
+            Mail::to($request->email)->send(new UserRegistered($mailParams));
+        } catch (\Exception $e) {
+            return response()->json(["error" => "MAIL_SEND_ERROR"], 500);
+        }
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
@@ -84,7 +108,6 @@ class AuthController extends Controller
     public function logout(Request $request)
     {
         $hasSuccedded = $request->user()->currentAccessToken()->delete();
-
 
         if ($hasSuccedded) {
             return response()->json(null, 204);
