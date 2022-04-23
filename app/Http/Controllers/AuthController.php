@@ -34,8 +34,10 @@ class AuthController extends Controller
 
         $ip_data = $response->json();
 
+        $ip = $ip_data['IPv4'] === "Not found" ? null : $ip_data['IPv4'];
+
         $user->update([
-            'ip_address' => $request->ip()
+            'ip_address' => $ip
         ]);
 
         $user->tokens()->where('tokenable_id',  $user->id)->delete();
@@ -45,8 +47,7 @@ class AuthController extends Controller
         return response()->json([
             "token" => $token,
             "user" => $user,
-            "ip" => $ip_data,
-            "ip_address" => $request->ip(),
+            "ip" => $ip_data
         ], 200);
     }
 
