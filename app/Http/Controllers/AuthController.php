@@ -36,7 +36,7 @@ class AuthController extends Controller
         if (!$locationExists && $location) {
             UserLocations::create([
                 'user_id' => $user->id,
-                'ipv4' => $location['ipv4'],
+                'ipv4' => $location['IPv4'],
                 'country_code' => $location['country_code'],
                 'country_name' => $location['country_name'],
                 'city' => $location['city'],
@@ -102,7 +102,7 @@ class AuthController extends Controller
         if ($location) {
             UserLocations::create([
                 'user_id' => $user->id,
-                'ipv4' => $location['ipv4'],
+                'ipv4' => $location['IPv4'],
                 'country_code' => $location['country_code'],
                 'country_name' => $location['country_name'],
                 'city' => $location['city'],
