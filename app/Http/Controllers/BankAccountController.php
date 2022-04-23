@@ -226,7 +226,7 @@ class BankAccountController extends Controller
         }
 
         $company->user_id = null;
-        $company->name = $company->name . '_' . time() . ' (fermé)';
+        $company->name = $company->name . '_' . time() . ' {{DELETED}}';
         $company->save();
 
         $company->employees()->delete();

@@ -60,4 +60,42 @@ class CompanyEmployeesController extends Controller
             "employee" => $employee,
         ], 200);
     }
+
+    public function fireEmployee(Request $request)
+    {
+        $request->validate([
+            'user_id' => 'required',
+            'company_id' => 'required',
+        ]);
+
+        $companyAccount = BankAccount::where('id', $request->company_id)->first();
+
+        if (!$companyAccount) {
+            return response()->json([
+                "error" => "COMPANY_NOT_FOUND",
+            ], 404);
+        }
+
+        if ($companyAccount->user_id != $request->user()->id) {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 401);
+        }
+
+        $employee = CompanyEmployees::where('user_id', $request->user_id)
+            ->where('bank_account_id', $request->company_id)
+            ->first();
+
+        if (!$employee) {
+            return response()->json([
+                "error" => "USER_NOT_IN_COMPANY",
+            ], 404);
+        }
+
+        $employee->delete();
+
+        return response()->json([
+            "employee" => $employee,
+        ], 200);
+    }
 }

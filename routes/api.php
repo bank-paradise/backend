@@ -71,4 +71,5 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('bank/company/salary', [BankTransactionController::class, 'sendSalary']);
     Route::put('bank/company/salary', [BankTransactionController::class, 'changeSalary']);
     Route::post('bank/company/employee', [CompanyEmployeesController::class, 'addEmployee']);
+    Route::post('bank/company/employee/fire', [CompanyEmployeesController::class, 'fireEmployee']);
 });

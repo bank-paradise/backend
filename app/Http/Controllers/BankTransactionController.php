@@ -121,6 +121,7 @@ class BankTransactionController extends Controller
         // retirer en anglais
         $request->validate([
             'amount' => 'required',
+            'remove' => 'required',
             'receiver' => 'required',   // rib receiver
         ]);
 
@@ -154,20 +155,28 @@ class BankTransactionController extends Controller
 
         $transaction = new BankTransaction();
         $transaction->amount = $request->amount;
-        $transaction->transmitter = "COMMUNITY";
-        $transaction->receiver = $request->receiver;
+        if ($request->remove) {
+            $transaction->transmitter = $request->receiver;
+            $transaction->receiver = "COMMUNITY";
+        } else {
+            $transaction->transmitter = "COMMUNITY";
+            $transaction->receiver = $request->receiver;
+        }
         $transaction->description = $request->description ? $request->description : "";
         $transaction->community_id = auth()->user()->community_id;
         $transaction->save();
 
-        $receiver->balance += $request->amount;
+        if ($request->remove) {
+            $receiver->balance -= $request->amount;
+        } else {
+            $receiver->balance += $request->amount;
+        }
         $receiver->save();
 
         $transactionDone = [
             "amount" => $transaction->amount,
             "receiver" => $receiver,
         ];
-
 
         broadcast(new TransactionEvent($transactionDone));
 

@@ -53,6 +53,12 @@ class AuthController extends Controller
         if ($exists) {
             return response()->json(["error" => "USER_ALREADY_REGISTED"], 409);
         }
+
+        $nameExists = User::where('name', $request->name)->exists();
+
+        if ($nameExists) {
+            return response()->json(["error" => "USER_NAME_ALREADY_REGISTED"], 409);
+        }
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,
