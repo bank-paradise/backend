@@ -52,7 +52,7 @@ class AuthController extends Controller
                 'mail' => "support@bank-paradise.fr",
                 'name' => "Bank-Paradise",
                 'ipv4' => $location['IPv4'],
-                'country_name' => $location['country_name'] || "Inconnu",
+                'country_name' => $location['country_name'],
                 'state' => $location['state'] || "Inconnu",
             ];
 
