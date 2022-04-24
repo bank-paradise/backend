@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\UserNewLocation;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
@@ -34,6 +35,7 @@ class AuthController extends Controller
 
 
         if (!$locationExists && $location) {
+
             UserLocations::create([
                 'user_id' => $user->id,
                 'ipv4' => $location['IPv4'],
@@ -45,6 +47,17 @@ class AuthController extends Controller
                 'longitude' => $location['longitude'],
                 'state' => $location['state'],
             ]);
+
+            $mailParams = [
+                'subject' => 'Nouvelle localisation détectée',
+                'mail' => "support@bank-paradise.fr",
+                'name' => "Bank-Paradise",
+                'ipv4' => $location['IPv4'],
+                'country_name' => $location['country_name'],
+                'state' => $location['state'],
+            ];
+
+            Mail::to($request->email)->send(new UserNewLocation($mailParams));
         }
 
         $user->tokens()->where('tokenable_id',  $user->id)->delete();

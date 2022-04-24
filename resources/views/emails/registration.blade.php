@@ -157,7 +157,7 @@
 											<!--<![endif]-->
 											<div align="center" class="img-container center autowidth" style="padding-right: 15px;padding-left: 15px;">
 												<!--[if mso]><table width="100%" cellpadding="0" cellspacing="0" border="0"><tr style="line-height:0px"><td style="padding-right: 15px;padding-left: 15px;" align="center"><![endif]-->
-												<div style="font-size:1px;line-height:15px"> </div><img align="center" border="0" class="center autowidth" src="beta.bank-paradise.fr/assets/brand/logo.png" style="text-decoration: none; -ms-interpolation-mode: bicubic; height: auto; border: 0; width: 100%; max-width: 158px; display: block;" width="158" />
+												<div style="font-size:1px;line-height:15px"> </div><img align="center" border="0" class="center autowidth" src="https://beta.bank-paradise.fr/assets/brand/logo.png" style="text-decoration: none; -ms-interpolation-mode: bicubic; height: auto; border: 0; width: 100%; max-width: 158px; display: block;" width="158" />
 												<div style="font-size:1px;line-height:15px"> </div>
 												<!--[if mso]></td></tr></table><![endif]-->
 											</div>
