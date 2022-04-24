@@ -63,9 +63,13 @@ class AuthController extends Controller
 
         $token = $user->createToken($request->device_name)->plainTextToken;
 
+        $userIp = $request->ip();
+        $locationData = \Location::get($userIp);
+
         return response()->json([
             "token" => $token,
-            "user" => $user
+            "user" => $user,
+            "locationData" => $locationData
         ], 200);
     }
 

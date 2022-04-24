@@ -177,6 +177,7 @@ return [
         App\Providers\EventServiceProvider::class,
         App\Providers\RouteServiceProvider::class,
 
+        Stevebauman\Location\LocationServiceProvider::class,
     ],
 
     /*
@@ -191,7 +192,7 @@ return [
     */
 
     'aliases' => Facade::defaultAliases()->merge([
-        // ...
+        'Location' => 'Stevebauman\Location\Facades\Location',
     ])->toArray(),
 
 ];
