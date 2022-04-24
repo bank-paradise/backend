@@ -33,7 +33,6 @@ class AuthController extends Controller
         $locationExists = UserLocations::where('ipv4', $request->ip())->where('user_id', $user->id)->first();
         $location = $this->getLocalization($request->ip());
 
-
         if (!$locationExists && $location) {
 
             UserLocations::create([
@@ -53,8 +52,8 @@ class AuthController extends Controller
                 'mail' => "support@bank-paradise.fr",
                 'name' => "Bank-Paradise",
                 'ipv4' => $location['IPv4'],
-                'country_name' => $location['country_name'],
-                'state' => $location['state'],
+                'country_name' => $location['country_name'] || "Inconnu",
+                'state' => $location['state'] || "Inconnu",
             ];
 
             Mail::to($request->email)->send(new UserNewLocation($mailParams));
