@@ -34,7 +34,6 @@ class AuthController extends Controller
         $location = $this->getLocalization($request->ip());
 
         if (!$locationExists && $location) {
-
             UserLocations::create([
                 'user_id' => $user->id,
                 'ipv4' => $location['IPv4'],
@@ -63,13 +62,9 @@ class AuthController extends Controller
 
         $token = $user->createToken($request->device_name)->plainTextToken;
 
-        $userIp = $request->ip();
-
-
         return response()->json([
             "token" => $token,
-            "user" => $user,
-            "locationData" => $locationData
+            "user" => $user
         ], 200);
     }
 
