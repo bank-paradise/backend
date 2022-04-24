@@ -6,6 +6,7 @@ use App\Models\BankAccount;
 use App\Models\BankTransaction;
 use App\Models\Community;
 use App\Models\CommunityInvitation;
+use App\Models\CompanyEmployees;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
@@ -440,6 +441,12 @@ class CommunityController extends Controller
             'role' => 'required',
         ]);
 
+        if (auth()->user()->community_role == 'admin' && $request->role == 'owner') {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
         $user = User::where('id', $request->user_id)->first();
 
         if (!$user) {
@@ -462,6 +469,8 @@ class CommunityController extends Controller
                 "error" => "USER_DOES_NOT_HAVE_PERMISSION",
             ], 409);
         }
+
+
 
 
 
@@ -507,28 +516,30 @@ class CommunityController extends Controller
             ], 404);
         }
 
-        if ($user->community_id != auth()->user()->community_id) {
-            return response()->json([
-                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
-            ], 409);
-        }
+        if (auth()->user()->id != $user->id) {
+            if ($user->community_id != auth()->user()->community_id) {
+                return response()->json([
+                    "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+                ], 409);
+            }
 
-        if ($user->community_role == 'owner' && auth()->user()->community_role != 'owner') {
-            return response()->json([
-                "error" => "CANNOT_KICK_OWNER",
-            ], 409);
-        }
+            if ($user->community_role == 'owner' && auth()->user()->community_role != 'owner') {
+                return response()->json([
+                    "error" => "CANNOT_KICK_OWNER",
+                ], 409);
+            }
 
-        if ($user->community_role == 'admin' && auth()->user()->community_role != ('owner')) {
-            return response()->json([
-                "error" => "CANNOT_KICK_ADMIN",
-            ], 409);
-        }
+            if ($user->community_role == 'admin' && auth()->user()->community_role != ('owner')) {
+                return response()->json([
+                    "error" => "CANNOT_KICK_ADMIN",
+                ], 409);
+            }
 
-        if ($user->community_role == 'moderator' && auth()->user()->community_role != ('owner' || 'admin')) {
-            return response()->json([
-                "error" => "CANNOT_KICK_MODERATOR",
-            ], 409);
+            if ($user->community_role == 'moderator' && auth()->user()->community_role != ('owner' || 'admin')) {
+                return response()->json([
+                    "error" => "CANNOT_KICK_MODERATOR",
+                ], 409);
+            }
         }
 
         $user->update([
@@ -541,8 +552,49 @@ class CommunityController extends Controller
             'user_id' => null,
         ]);
 
+        $jobs = CompanyEmployees::where('user_id', $user->id)->get();
+        foreach ($jobs as $job) {
+            $job->delete();
+        }
+
         return response()->json([
             "user" => $user,
         ], 200);
+    }
+
+    public function deleteCommunity()
+    {
+
+        if (auth()->user()->community_role != 'owner') {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 409);
+        }
+
+        $user = auth()->user();
+
+        $usersInCommu = User::where('community_id', $user->community_id)->get();
+        foreach ($usersInCommu as $userInCommu) {
+            $userInCommu->community_id = null;
+            $userInCommu->community_role = "member";
+            $userInCommu->save();
+        }
+        $user->community->delete();
+
+        $bankAccounts = $user->bankAccounts;
+        // retirer tout les userid qui sont dans les bankAccounts
+        foreach ($bankAccounts as $bankAccount) {
+            $bankAccount->user_id = null;
+            $bankAccount->save();
+        }
+
+        $jobs = CompanyEmployees::where('user_id', $user->id)->get();
+        foreach ($jobs as $job) {
+            $job->delete();
+        }
+        $user->community_id = null;
+        $user->save();
+
+        return response()->json(null, 204);
     }
 }

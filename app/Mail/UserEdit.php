@@ -7,9 +7,10 @@ use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Queue\SerializesModels;
 
-class UserNewLocation extends Mailable
+class UserEdit extends Mailable
 {
     use Queueable, SerializesModels;
+
 
     public function __construct($params)
     {
@@ -18,8 +19,8 @@ class UserNewLocation extends Mailable
 
     public function build()
     {
-        return $this->subject("Nouvelle localisation détectée")
+        return $this->subject("Informations mis à jour")
             ->from($address = "support@bank-paradise.fr", $name = "Bank-Paradise")
-            ->view('emails.location', $this->params);
+            ->view('emails.useredit', $this->params);
     }
 }

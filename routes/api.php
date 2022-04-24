@@ -37,11 +37,14 @@ Route::post('/auth/register', [AuthController::class, 'register']);
  */
 Route::middleware('auth:sanctum')->group(function () {
     Route::post("/auth/me", [AuthController::class, 'me']);
+    Route::put("/auth/me", [AuthController::class, 'edit']);
+    Route::delete("/auth/me", [AuthController::class, 'delete']);
     Route::post("/auth/logout", [AuthController::class, 'logout']);
 
     Route::get('community', [CommunityController::class, 'get']);
     Route::put('community', [CommunityController::class, 'update']);
     Route::post('community', [CommunityController::class, 'store']);
+    Route::delete('community', [CommunityController::class, 'deleteCommunity']);
     Route::post('community/invite/{id}', [CommunityController::class, 'join']);
     Route::post('community/accounts', [CommunityController::class, 'getAccounts']);
     Route::get('community/accounts/all', [BankAccountController::class, 'getAllAccounts']);
