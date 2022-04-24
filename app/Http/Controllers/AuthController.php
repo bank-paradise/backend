@@ -53,7 +53,7 @@ class AuthController extends Controller
                 'name' => "Bank-Paradise",
                 'ipv4' => $location['IPv4'],
                 'country_name' => $location['country_name'],
-                'state' => $location['state'] || "Inconnu",
+                'state' => $location['state'],
             ];
 
             Mail::to($request->email)->send(new UserNewLocation($mailParams));
