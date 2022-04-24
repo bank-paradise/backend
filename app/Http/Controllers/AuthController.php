@@ -64,7 +64,7 @@ class AuthController extends Controller
         $token = $user->createToken($request->device_name)->plainTextToken;
 
         $userIp = $request->ip();
-        $locationData = \Location::get($userIp);
+
 
         return response()->json([
             "token" => $token,
@@ -144,18 +144,6 @@ class AuthController extends Controller
         ], 200);
     }
 
-    public function getLocalization($ip)
-    {
-        $response = Http::get('https://geolocation-db.com/json/' . $ip);
-
-        $ip_data = $response->json();
-
-        if ($ip_data['IPv4'] === "Not found") {
-            return null;
-        } else {
-            return $ip_data;
-        }
-    }
 
     public function logout(Request $request)
     {
@@ -165,5 +153,26 @@ class AuthController extends Controller
             return response()->json(null, 204);
         }
         return response()->json(['message' => 'USER_NOT_AUTHENTICATED'], 401);
+    }
+
+
+    public function getLocalization($ip)
+    {
+        $locationData = \Location::get($ip);
+
+        if (!$locationData) {
+            return null;
+        } else {
+            return [
+                'IPv4' => $locationData->ip,
+                'country_code' => $locationData->countryCode,
+                'country_name' => $locationData->countryName,
+                'city' => $locationData->cityName,
+                'postal' => $locationData->postalCode,
+                'latitude' => $locationData->latitude,
+                'longitude' => $locationData->longitude,
+                'state' => $locationData->regionName,
+            ];
+        }
     }
 }
