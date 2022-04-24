@@ -230,9 +230,10 @@ class AuthController extends Controller
         }
 
         $bankAccounts = $user->bankAccounts;
-        // retirer tout les userid qui sont dans les bankAccounts
+
         foreach ($bankAccounts as $bankAccount) {
             $bankAccount->user_id = null;
+            $bankAccount->name = $bankAccount->name . '_' . time() . ' {{DELETED}}';
             $bankAccount->save();
         }
 
@@ -244,8 +245,6 @@ class AuthController extends Controller
         $user->save();
 
         $user->delete();
-
-
 
         return response()->json(null, 204);
     }

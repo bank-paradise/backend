@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Mail\UserInvitation;
 use App\Models\BankAccount;
 use App\Models\BankTransaction;
 use App\Models\Community;
@@ -10,6 +11,7 @@ use App\Models\CompanyEmployees;
 use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Support\Facades\Mail;
 
 
 class CommunityController extends Controller
@@ -115,6 +117,17 @@ class CommunityController extends Controller
             'user_id' => $userInvited->id,
             'community_id' => auth()->user()->community_id,
         ]);
+
+        try {
+            $mailParams = [
+                'name' => $userInvited->name,
+                'community' => auth()->user()->community->name,
+            ];
+
+            Mail::to($userInvited->email)->send(new UserInvitation($mailParams));
+        } catch (\Exception $e) {
+            return response()->json(["error" => "MAIL_SEND_ERROR"], 500);
+        }
 
         return response()->json([
             "invitations" => auth()->user()->community->invitations,
@@ -551,6 +564,12 @@ class CommunityController extends Controller
         $user->bankAccounts()->update([
             'user_id' => null,
         ]);
+
+        foreach ($user->bankAccounts()->get() as $bankAccount) {
+            $bankAccount->user_id = null;
+            $bankAccount->name = $bankAccount->name . '_' . time() . ' {{DELETED}}';
+            $bankAccount->save();
+        }
 
         $jobs = CompanyEmployees::where('user_id', $user->id)->get();
         foreach ($jobs as $job) {
