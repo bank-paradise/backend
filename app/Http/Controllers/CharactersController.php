@@ -51,8 +51,8 @@ class CharactersController extends Controller
         $character->user_id = $request->user()->id;
 
         $avatar = $request->file('avatar');
-        $filename = time() . '.' . $avatar->getClientOriginalExtension();
-        $path = $avatar->storeAs('public/avatars', $filename);
+        $filename = Str::uuid() . time() . '.' . $avatar->getClientOriginalExtension();
+        $avatar->storeAs('public/avatars', $filename);
         $character->avatar = $filename;
 
         $character->save();
