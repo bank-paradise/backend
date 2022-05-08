@@ -5,9 +5,10 @@ use App\Http\Controllers\{
     BankTransactionController,
     BankAccountController,
     AuthController,
-    CompanyEmployeesController
+    CompanyEmployeesController,
+    CharactersController
 };
-use App\Models\CompanyEmployees;
+
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -75,4 +76,13 @@ Route::middleware('auth:sanctum', 'rp.community')->group(function () {
     Route::put('bank/company/salary', [BankTransactionController::class, 'changeSalary']);
     Route::post('bank/company/employee', [CompanyEmployeesController::class, 'addEmployee']);
     Route::post('bank/company/employee/fire', [CompanyEmployeesController::class, 'fireEmployee']);
+});
+
+
+/**
+ * Character routes
+ */
+Route::middleware('auth:sanctum', 'rp.community')->group(function () {
+    Route::get('character', [CharactersController::class, 'getCharacter']);
+    Route::post('character', [CharactersController::class, 'createCharacter']);
 });
