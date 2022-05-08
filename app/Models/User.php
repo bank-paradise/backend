@@ -63,4 +63,9 @@ class User extends Authenticatable
     {
         return $this->hasMany(BankAccount::class);
     }
+
+    public function character()
+    {
+        return $this->hasOne(Characters::class);
+    }
 }

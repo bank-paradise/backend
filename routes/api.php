@@ -64,7 +64,7 @@ Route::middleware('auth:sanctum')->group(function () {
 /**
  * Bank routes
  */
-Route::middleware('auth:sanctum')->group(function () {
+Route::middleware('auth:sanctum', 'rp.community')->group(function () {
     Route::get('bank', [BankAccountController::class, 'get']);
     Route::post('bank/transaction', [BankTransactionController::class, 'store']);
 

@@ -178,6 +178,8 @@ return [
         App\Providers\RouteServiceProvider::class,
 
         Stevebauman\Location\LocationServiceProvider::class,
+        Intervention\Image\ImageServiceProvider::class
+
     ],
 
     /*
@@ -193,6 +195,8 @@ return [
 
     'aliases' => Facade::defaultAliases()->merge([
         'Location' => 'Stevebauman\Location\Facades\Location',
+        'Image' => Intervention\Image\Facades\Image::class
+
     ])->toArray(),
 
 ];
