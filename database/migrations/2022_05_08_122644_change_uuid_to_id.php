@@ -13,11 +13,11 @@ return new class extends Migration
      */
     public function up()
     {
-        Schema::table('roleplay_information', function (Blueprint $table) {
-            $table->string('avatar')->nullable();
-        });
+        Schema::table('characters', function (Blueprint $table) {
 
-        Schema::rename('roleplay_information', 'characters');
+            $table->dropColumn('uuid');
+            $table->id();
+        });
     }
 
     /**
@@ -28,9 +28,10 @@ return new class extends Migration
     public function down()
     {
         Schema::table('characters', function (Blueprint $table) {
-            $table->dropColumn('avatar');
+            // remove primary key
+            // $table->dropPrimary();
+            // $table->dropColumn('id');
+            // $table->string('uuid');
         });
-
-        Schema::rename('characters', 'roleplay_information');
     }
 };

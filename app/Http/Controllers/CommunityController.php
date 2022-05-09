@@ -28,11 +28,21 @@ class CommunityController extends Controller
 
         $accountsPerso = [];
         $accountsPro = [];
+        $accountsCash = [];
 
         foreach (BankAccount::where('community_id', auth()->user()->community_id)
             ->where('user_id', '!=', auth()->user()->id)
             ->where("type", "personnal")->get() as $account) {
             array_push($accountsPerso, [
+                'name' => $account->user->name,
+                'rib' => $account->rib,
+            ]);
+        }
+
+        foreach (BankAccount::where('community_id', auth()->user()->community_id)
+            ->where('user_id', '!=', auth()->user()->id)
+            ->where("type", "cash")->get() as $account) {
+            array_push($accountsCash, [
                 'name' => $account->user->name,
                 'rib' => $account->rib,
             ]);
@@ -49,6 +59,7 @@ class CommunityController extends Controller
         return [
             'personnal' => $accountsPerso,
             'professional' => $accountsPro,
+            'cash' => $accountsCash,
         ];
     }
 
@@ -195,6 +206,15 @@ class CommunityController extends Controller
             'community_id' => $communityInvitation->community_id
         ]);
 
+        BankAccount::create([
+            'balance' => 0,
+            'name' => auth()->user()->name,
+            'type' => 'cash',
+            'rib' => Str::uuid(),
+            'user_id' => auth()->user()->id,
+            'community_id' => $communityInvitation->community_id
+        ]);
+
         BankTransaction::create([
             'amount' => auth()->user()->community->starting_amout,
             'transmitter' => "COMMUNITY",
@@ -205,6 +225,7 @@ class CommunityController extends Controller
 
         $accountsPerso = [];
         $accountsPro = [];
+        $accountsCash = [];
 
         foreach (BankAccount::where('community_id', auth()->user()->community_id)->where("type", "personnal")->get() as $account) {
             array_push($accountsPerso, [
@@ -220,12 +241,20 @@ class CommunityController extends Controller
             ]);
         }
 
+        foreach (BankAccount::where('community_id', auth()->user()->community_id)->where("type", "cash")->get() as $account) {
+            array_push($accountCash, [
+                'name' => $account->user->name,
+                'rib' => $account->rib,
+            ]);
+        }
+
         return response()->json([
             "community" => auth()->user()->community,
             "invitations" => $invitations,
             "accounts" => [
                 'personnal' => $accountsPerso,
                 'professional' => $accountsPro,
+                'cash' => $accountsCash,
             ],
         ], 200);
     }
@@ -271,6 +300,15 @@ class CommunityController extends Controller
             'rib' => Str::uuid(),
             'user_id' => auth()->user()->id,
             'community_id' => $community->id,
+        ]);
+
+        BankAccount::create([
+            'balance' => 0,
+            'name' => auth()->user()->name,
+            'type' => 'cash',
+            'rib' => Str::uuid(),
+            'user_id' => auth()->user()->id,
+            'community_id' => $community->id
         ]);
 
         BankTransaction::create([

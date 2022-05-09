@@ -10,10 +10,10 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UserRegistered;
+use App\Models\BankAccount;
 use App\Models\CompanyEmployees;
 use App\Models\UserLocations;
-use PhpParser\Node\Stmt\TryCatch;
-use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Str;
 
 class AuthController extends Controller
 {
@@ -62,6 +62,8 @@ class AuthController extends Controller
         $user->tokens()->where('tokenable_id',  $user->id)->delete();
 
         $token = $user->createToken($request->device_name)->plainTextToken;
+
+        $this->checkHasCashAccount($user);
 
         return response()->json([
             "token" => $token,
@@ -135,6 +137,8 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
+        $this->checkHasCashAccount($request->user());
+
         return response()->json([
             "user" => auth()->user(),
         ], 200);
@@ -267,6 +271,20 @@ class AuthController extends Controller
                 'longitude' => $locationData->longitude,
                 'state' => $locationData->regionName,
             ];
+        }
+    }
+
+    public function checkHasCashAccount($user)
+    {
+        if (!$user->cashAccount) {
+            $newCashAccount = new BankAccount();
+            $newCashAccount->user_id = $user->id;
+            $newCashAccount->balance = 0;
+            $newCashAccount->name = $user->name;
+            $newCashAccount->type = "cash";
+            $newCashAccount->rib = Str::uuid();
+            $newCashAccount->community_id = $user->community_id;
+            $newCashAccount->save();
         }
     }
 }

@@ -64,6 +64,11 @@ class User extends Authenticatable
         return $this->hasMany(BankAccount::class);
     }
 
+    public function cashAccount()
+    {
+        return $this->hasOne(BankAccount::class)->where('type', 'cash');
+    }
+
     public function character()
     {
         return $this->hasOne(Characters::class);

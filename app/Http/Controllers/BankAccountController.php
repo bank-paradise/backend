@@ -26,7 +26,6 @@ class BankAccountController extends Controller
 
         foreach (auth()->user()->bankAccounts()->get() as $account) {
             if ($account->type == 'professional') {
-                $employees = CompanyEmployees::where('bank_account_id', $account->id)->get();
                 array_push($accounts, [
                     "id" => $account->id,
                     "balance" => $account->balance,
