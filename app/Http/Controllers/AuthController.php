@@ -276,7 +276,7 @@ class AuthController extends Controller
 
     public function checkHasCashAccount($user)
     {
-        if (!$user->cashAccount) {
+        if (!$user->cashAccount && $user->community_id) {
             $newCashAccount = new BankAccount();
             $newCashAccount->user_id = $user->id;
             $newCashAccount->balance = 0;
