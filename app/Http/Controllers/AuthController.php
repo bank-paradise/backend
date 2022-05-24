@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Mail;
 use App\Mail\UserRegistered;
 use App\Models\BankAccount;
+use App\Models\CommunityInvitationLink;
 use App\Models\CompanyEmployees;
 use App\Models\UserLocations;
 use Illuminate\Support\Str;
@@ -63,7 +64,11 @@ class AuthController extends Controller
 
         $token = $user->createToken($request->device_name)->plainTextToken;
 
+        // delete this code after end of beta
         $this->checkHasCashAccount($user);
+        if ($user->community) {
+            $this->checkCommunityHasInvitationsLink($user->community);
+        }
 
         return response()->json([
             "token" => $token,
@@ -113,6 +118,7 @@ class AuthController extends Controller
 
         $location = $this->getLocalization($request->ip());
 
+
         if ($location) {
             UserLocations::create([
                 'user_id' => $user->id,
@@ -137,7 +143,11 @@ class AuthController extends Controller
 
     public function me(Request $request)
     {
+        // delete this code after end of beta
         $this->checkHasCashAccount($request->user());
+        if ($request->user()->community) {
+            $this->checkCommunityHasInvitationsLink($request->user()->community);
+        }
 
         return response()->json([
             "user" => auth()->user(),
@@ -285,6 +295,16 @@ class AuthController extends Controller
             $newCashAccount->rib = Str::uuid();
             $newCashAccount->community_id = $user->community_id;
             $newCashAccount->save();
+        }
+    }
+
+    public function checkCommunityHasInvitationsLink($community)
+    {
+        if (!$community->invitationsLink) {
+            CommunityInvitationLink::create([
+                'community_id' => $community->id,
+                'code' => Str::uuid(),
+            ]);
         }
     }
 }

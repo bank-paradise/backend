@@ -7,6 +7,7 @@ use App\Models\BankAccount;
 use App\Models\BankTransaction;
 use App\Models\Community;
 use App\Models\CommunityInvitation;
+use App\Models\CommunityInvitationLink;
 use App\Models\CompanyEmployees;
 use App\Models\User;
 use Illuminate\Http\Request;
@@ -284,6 +285,11 @@ class CommunityController extends Controller
             'name' => $request->name,
             'description' => $request->description,
             'currency' => $request->currency,
+        ]);
+
+        CommunityInvitationLink::create([
+            'community_id' => $community->id,
+            'link' => Str::uuid(),
         ]);
 
         $communityCreated = Community::where('id', $community->id)->first();

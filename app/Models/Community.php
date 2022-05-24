@@ -37,4 +37,9 @@ class Community extends Model
     {
         return $this->hasMany(BankTransaction::class);
     }
+
+    public function invitationsLink()
+    {
+        return $this->hasOne(CommunityInvitationLink::class);
+    }
 }

@@ -6,7 +6,8 @@ use App\Http\Controllers\{
     BankAccountController,
     AuthController,
     CompanyEmployeesController,
-    CharactersController
+    CharactersController,
+    CommunityInvitationLinkController
 };
 
 use Illuminate\Http\Request;
@@ -47,6 +48,8 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('community', [CommunityController::class, 'store']);
     Route::delete('community', [CommunityController::class, 'deleteCommunity']);
     Route::post('community/invite/{id}', [CommunityController::class, 'join']);
+    Route::get('community/link/invite/{code}', [CommunityInvitationLinkController::class, 'getInvitationLinkInformations']);
+    Route::put('community/link/invite/{code}', [CommunityInvitationLinkController::class, 'useInvitationLink']);
     Route::post('community/accounts', [CommunityController::class, 'getAccounts']);
     Route::get('community/accounts/all', [BankAccountController::class, 'getAllAccounts']);
 
@@ -54,6 +57,7 @@ Route::middleware('auth:sanctum')->group(function () {
      * Staff route
      */
     Route::get('community/invitations', [CommunityController::class, 'getInvitations']);
+    Route::get('community/invitations/link', [CommunityInvitationLinkController::class, 'getInvitationLink']);
     Route::get('community/transactions', [CommunityController::class, 'getTransactions']);
     Route::get('community/members', [CommunityController::class, 'getMembers']);
     Route::post('community/invite', [CommunityController::class, 'invite']);
