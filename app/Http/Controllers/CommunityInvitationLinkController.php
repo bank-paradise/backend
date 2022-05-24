@@ -19,7 +19,7 @@ class CommunityInvitationLinkController extends Controller
 
         if (auth()->user()->community_id) {
             return response()->json([
-                "error" => "ALREADY_IN_COMMUNITY",
+                "error" => "USER_ALREADY_IN_A_COMMUNITY",
             ], 403);
         }
 
