@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\CommunityInvitation;
 use App\Models\CommunityInvitationLink;
 use Illuminate\Http\Request;
+use Illuminate\Support\Str;
 
 class CommunityInvitationLinkController extends Controller
 {
@@ -123,6 +124,26 @@ class CommunityInvitationLinkController extends Controller
 
         return response()->json([
             "invitation_link" => $invitationLink
+        ]);
+    }
+
+    public function resetInvitationsLink()
+    {
+        if (auth()->user()->community_role != "owner" && auth()->user()->community_role != "admin") {
+            return response()->json([
+                "error" => "USER_DOES_NOT_HAVE_PERMISSION",
+            ], 403);
+        }
+
+        auth()->user()->community->invitationsLink->delete();
+
+        $newInvitationLink = CommunityInvitationLink::create([
+            'community_id' => auth()->user()->community_id,
+            'code' => Str::uuid(),
+        ]);
+
+        return response()->json([
+            "invitation_link" => $newInvitationLink,
         ]);
     }
 }

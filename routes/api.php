@@ -58,6 +58,7 @@ Route::middleware('auth:sanctum')->group(function () {
      */
     Route::get('community/invitations', [CommunityController::class, 'getInvitations']);
     Route::get('community/invitations/link', [CommunityInvitationLinkController::class, 'getInvitationLink']);
+    Route::delete('community/invitations/link/reset', [CommunityInvitationLinkController::class, 'resetInvitationsLink']);
     Route::get('community/transactions', [CommunityController::class, 'getTransactions']);
     Route::get('community/members', [CommunityController::class, 'getMembers']);
     Route::post('community/invite', [CommunityController::class, 'invite']);
