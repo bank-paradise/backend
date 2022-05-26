@@ -125,9 +125,12 @@ class BankAccountController extends Controller
 
         $profAccounts = BankAccount::where('community_id', auth()->user()->community_id)->where('type', 'professional')->get();
 
+        $cashAccounts = BankAccount::where('community_id', auth()->user()->community_id)->where('type', 'cash')->get();
+
         return response()->json([
             "personnal" => $persoAccounts,
-            "professional" => $profAccounts
+            "professional" => $profAccounts,
+            "cash" => $cashAccounts
         ], 200);
     }
 
