@@ -109,6 +109,9 @@ class AuthController extends Controller
             return response()->json(["error" => "MAIL_SEND_ERROR"], 500);
         }
 
+
+        $request->merge(['email' => strtolower($request->email)]);
+
         $user = User::create([
             'name' => $request->name,
             'email' => $request->email,

@@ -59,6 +59,11 @@ class User extends Authenticatable
         return $this->hasMany(CommunityInvitation::class);
     }
 
+    public function personnalAccount()
+    {
+        return $this->hasOne(BankAccount::class)->where('type', 'personnal');
+    }
+
     public function bankAccounts()
     {
         return $this->hasMany(BankAccount::class);

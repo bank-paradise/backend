@@ -5,6 +5,7 @@ use App\Http\Controllers\{
     BankTransactionController,
     BankAccountController,
     AuthController,
+    BankSalaryRequestController,
     CompanyEmployeesController,
     CharactersController,
     CommunityInvitationLinkController
@@ -25,13 +26,12 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/health', function () {
-    return response()->json(['status' => 'ok']);
+    return response()->json(['status' => 'ok', 'version' => '0.1.5']);
 });
 
 
 Route::post('/auth/login', [AuthController::class, 'login']);
 Route::post('/auth/register', [AuthController::class, 'register']);
-
 
 
 /**
@@ -59,12 +59,18 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::get('community/invitations', [CommunityController::class, 'getInvitations']);
     Route::get('community/invitations/link', [CommunityInvitationLinkController::class, 'getInvitationLink']);
     Route::delete('community/invitations/link/reset', [CommunityInvitationLinkController::class, 'resetInvitationsLink']);
+
     Route::get('community/transactions', [CommunityController::class, 'getTransactions']);
     Route::get('community/members', [CommunityController::class, 'getMembers']);
     Route::post('community/invite', [CommunityController::class, 'invite']);
+
     Route::post('community/transactions/inject', [BankTransactionController::class, 'injectMoney']);
+
     Route::put('community/role', [CommunityController::class, 'changeRole']);
     Route::post('community/kick', [CommunityController::class, 'kickMember']);
+
+    Route::get('community/salary', [BankSalaryRequestController::class, 'getAll']);
+    Route::put('community/salary', [BankSalaryRequestController::class, 'answer']);
 });
 
 /**
@@ -73,6 +79,10 @@ Route::middleware('auth:sanctum')->group(function () {
 Route::middleware('auth:sanctum', 'rp.community')->group(function () {
     Route::get('bank', [BankAccountController::class, 'get']);
     Route::post('bank/transaction', [BankTransactionController::class, 'store']);
+
+    // Salary routes
+    Route::post('bank/salary', [BankSalaryRequestController::class, 'create']);
+    Route::get('bank/salary/last', [BankSalaryRequestController::class, 'getLast']);
 
     // Company routes
     Route::post('bank/company', [BankAccountController::class, 'createCompanyAccount']);

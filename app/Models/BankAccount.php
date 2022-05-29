@@ -37,4 +37,9 @@ class BankAccount extends Model
     {
         return $this->hasMany(CompanyEmployees::class);
     }
+
+    public function salaryRequests()
+    {
+        return $this->hasMany(BankSalaryRequest::class);
+    }
 }
