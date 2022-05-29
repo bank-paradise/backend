@@ -177,13 +177,10 @@ class AuthController extends Controller
 
         $user = auth()->user();
 
-
+        $accounts = BankAccount::where('user_id', $user->id)->where('name', $user->name)->get();
 
         $user->name = $request->name;
         $user->email = $request->email;
-
-
-
 
         if ($request->password && $request->password != "") {
             if (!Hash::check($request->password, $user->password)) {
@@ -202,6 +199,11 @@ class AuthController extends Controller
             Mail::to($request->email)->send(new UserEdit($mailParams));
         } catch (\Exception $e) {
             return response()->json(["error" => "MAIL_SEND_ERROR"], 500);
+        }
+
+        foreach ($accounts as $account) {
+            $account->name = $request->name;
+            $account->save();
         }
 
         $user->save();
