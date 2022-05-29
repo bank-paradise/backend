@@ -26,7 +26,8 @@ use Illuminate\Support\Facades\Route;
 */
 
 Route::get('/health', function () {
-    return response()->json(['status' => 'ok', 'version' => '0.1.5']);
+    $apiInformations = \App\Models\ApiInformations::first();
+    return response()->json(['status' => 'ok', 'version' => $apiInformations->version]);
 });
 
 
