@@ -17,7 +17,7 @@ class BankSalaryRequestController extends Controller
             'description' => 'required|string',
         ]);
 
-        $lastRequest = BankSalaryRequest::where('bank_account_id', $request->bank_account_id)->orderBy('created_at', 'desc')->first();
+        $lastRequest = BankSalaryRequest::where('bank_account_id', $request->bank_account_id)->where('status', 'accepted')->orderBy('created_at', 'desc')->first();
 
         if ($lastRequest && $lastRequest->created_at->diffInHours(now()) < 12) {
             return response()->json([
@@ -126,6 +126,21 @@ class BankSalaryRequestController extends Controller
                 }
             }
         }
+
+        // trier les salaires par date et classer chaque jour dans un tableau
+        $salaryRequestsFinished = array_map(function ($salaryRequest) {
+            $salaryRequest['date'] = $salaryRequest['salary']->created_at->format('Y-m-d');
+            return $salaryRequest;
+        }, $salaryRequestsFinished);
+
+        $salaryRequestsFinished = array_reduce($salaryRequestsFinished, function ($carry, $item) {
+            if (!isset($carry[$item['date']])) {
+                $carry[$item['date']] = [];
+            }
+            $carry[$item['date']][] = $item;
+            return $carry;
+        }, []);
+
 
         return response()->json([
             'salary_requests_waiting' => $salaryRequestsWaiting,

@@ -597,13 +597,18 @@ class CommunityController extends Controller
                     "error" => "CANNOT_KICK_MODERATOR",
                 ], 409);
             }
+        } else {
+            if ($user->community_role == 'owner') {
+                return response()->json([
+                    "error" => "CANNOT_KICK_OWNER",
+                ], 409);
+            }
         }
 
         $user->update([
             'community_role' => 'member',
             'community_id' => null,
         ]);
-
 
         $user->bankAccounts()->update([
             'user_id' => null,

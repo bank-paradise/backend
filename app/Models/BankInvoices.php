@@ -8,4 +8,12 @@ use Illuminate\Database\Eloquent\Model;
 class BankInvoices extends Model
 {
     use HasFactory;
+
+    protected $fillable = [
+        'transmitter',
+        'receiver',
+        'amount',
+        'description',
+        'status',
+    ];
 }
