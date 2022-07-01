@@ -49,6 +49,25 @@ class BankAccountController extends Controller
             }
         }
 
+
+        $bankAccountsIsEmployee = CompanyEmployees::where('user_id', auth()->user()->id)->where('grade', '!=', 'boss')->get();
+        foreach ($bankAccountsIsEmployee as $bankAccountIsEmployee) {
+            $bankAccount = $bankAccountIsEmployee->bankAccount;
+            if ($bankAccount) {
+                array_push($accounts, [
+                    "id" => $bankAccount->id,
+                    "balance" => $bankAccount->balance,
+                    "name" => $bankAccount->name,
+                    "rib" => $bankAccount->rib,
+                    "type" => $bankAccount->type,
+                    "user_id" => $bankAccount->user_id,
+                    "community_id" => $bankAccount->community_id,
+                    "employe" => $bankAccountIsEmployee,
+                ]);
+            }
+        }
+
+
         $ribs = [];
         $transactions = [];
         $incoming_money = 0;

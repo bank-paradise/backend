@@ -98,8 +98,26 @@ class BankTransactionController extends Controller
             "receiver" => $receiver,
         ];
 
-
         broadcast(new TransactionEvent($transactionDone));
+
+        if ($receiver->type === 'professional') {
+            $employees = CompanyEmployees::where('bank_account_id', $receiver->id)->where('grade', '!=', 'boss')->get();
+            foreach ($employees as $employee) {
+                $transactionDone = [
+                    "transaction" => [
+                        "amount" => $transaction->amount,
+                        "transmitter" => $account,
+                        "receiver" => $receiver,
+                        "created_at" => $transaction->created_at,
+                        "id" => $transaction->id,
+                        "description" => $transaction->description,
+                    ],
+                    "transmitter" => $account,
+                    "receiver" => $employee,
+                ];
+                broadcast(new TransactionEvent($transactionDone));
+            }
+        }
 
         return response()->json([
             "transaction" => [

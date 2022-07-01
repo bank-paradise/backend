@@ -289,7 +289,7 @@ class CommunityController extends Controller
 
         CommunityInvitationLink::create([
             'community_id' => $community->id,
-            'link' => Str::uuid(),
+            'code' => Str::uuid(),
         ]);
 
         $communityCreated = Community::where('id', $community->id)->first();
