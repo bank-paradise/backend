@@ -17,7 +17,7 @@ services:
             - bank_paradise
         depends_on:
             - db
-        command: sh -c "compoeser install && php artisan migrate && php-fpm"
+        command: sh -c "composer install && php artisan migrate && php-fpm"
     db:
         image: mysql
         container_name: bank_paradise-db
