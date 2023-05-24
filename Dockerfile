@@ -39,7 +39,3 @@ USER $user
 
 # Install PM2 globally
 RUN sudo npm install pm2 -g
-
-# install composer dependencies
-COPY --chown=$user:$user . /var/www
-RUN composer install
