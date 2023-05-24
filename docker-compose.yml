@@ -15,7 +15,9 @@ services:
             - ./:/var/www
         networks:
             - bank_paradise
-
+        depends_on:
+            - db
+        command: sh -c "php artisan migrate && php-fpm"
     db:
         image: mysql
         container_name: bank_paradise-db
@@ -27,11 +29,23 @@ services:
             MYSQL_USER: ${DB_USERNAME}
             SERVICE_TAGS: dev
             SERVICE_NAME: mysql
-        volumes:
-            - ./docker-compose/mysql:/docker-entrypoint-initdb.d
         networks:
             - bank_paradise
-
+    websockets:
+        image: bank_paradise
+        command: ["php", "artisan", "websockets:serve"]
+        container_name: bank_paradise-websockets
+        restart: unless-stopped
+        working_dir: /var/www/
+        volumes:
+            - ./:/var/www
+        ports:
+            - 6001:6001
+        networks:
+            - bank_paradise
+        depends_on:
+            - app
+            - db
     nginx:
         image: nginx:alpine
         container_name: bank_paradise-nginx
@@ -43,6 +57,9 @@ services:
             - ./docker-compose/nginx:/etc/nginx/conf.d/
         networks:
             - bank_paradise
+        depends_on:
+            - app
+            - db
 
 networks:
     bank_paradise:
