@@ -32,6 +32,9 @@ RUN useradd -G www-data,sudo -u $uid -d /home/$user $user \
     && mkdir -p /home/$user/.composer \
     && chown -R $user:$user /home/$user
 
+# add permission on /var/www
+RUN chown -R $user:$user /var/www
+
 # Set working directory
 WORKDIR /var/www
 
