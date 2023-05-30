@@ -32,15 +32,12 @@ RUN useradd -G www-data,sudo -u $uid -d /home/$user $user \
     && mkdir -p /home/$user/.composer \
     && chown -R $user:$user /home/$user
 
-# add permission on /var/www
-RUN sudo chown -R $user:$user /var/www
-
-RUN sudo chmod -R 777 /var/www/storage
-
 # Set working directory
 WORKDIR /var/www
 
 USER $user
+
+RUN sudo chown -R $user:$user /var/www
 
 # Install PM2 globally
 RUN sudo npm install pm2 -g

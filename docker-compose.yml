@@ -17,7 +17,7 @@ services:
             - bank_paradise
         depends_on:
             - db
-        command: sh -c "sudo composer install && sudo php artisan migrate && sudo php-fpm"
+        command: sh -c "sudo chmod -R 777 storage/ && sudo composer install && sudo php artisan migrate && sudo php-fpm"
     db:
         image: mysql
         container_name: bank_paradise-db
