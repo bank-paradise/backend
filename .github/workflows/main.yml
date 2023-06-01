@@ -9,8 +9,6 @@ jobs:
     runs-on: ubuntu-latest
     environment: production
     steps:
-      - name: echo the value of the secret
-        run: echo ${{ secrets.HOST }}
       - name: pull code from github repo
         uses: appleboy/ssh-action@v0.1.10
         with:
