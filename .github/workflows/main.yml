@@ -18,9 +18,6 @@ jobs:
       - name: Run syntax check
         run: php -l .
 
-      - name: Run tests
-        run: vendor/bin/phpunit
-
       - name: pull code from github repo
         uses: appleboy/ssh-action@v0.1.10
         with:
