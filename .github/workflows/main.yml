@@ -16,9 +16,9 @@ jobs:
         run: composer install --no-scripts --no-progress --prefer-dist
 
       - name: Run syntax check
-        run: php -l .
+        run: find . -name "*.php" -not -path "./vendor/*" -type f -exec php -l {} \; | grep -v "No syntax errors detected" && exit 1
 
-      - name: pull code from github repo
+      - name: Pull code and deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
           host: ${{ secrets.HOST }}
