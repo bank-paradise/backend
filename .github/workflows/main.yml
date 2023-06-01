@@ -4,12 +4,19 @@ on:
       - main
 
 jobs:
-  deploy:
-    runs-on: self-hosted
-
+  build:
+    name: Build
+    runs-on: ubuntu-latest
     steps:
-      - name: Récupération du référentiel
-        uses: actions/checkout@v2
-
-      - name: Exécution du playbook Ansible
-        run: cd /home/ubuntu/bank-paradise/ansible && ansible-playbook playbook.yml -i inventaire.yml -u root
+      - name: pull code from github repo
+        uses: appleboy/ssh-action@v0.1.10
+        with:
+          host: ${{ secrets.HOST }}
+          username: ${{ secrets.USERNAME }}
+          password: ${{ secrets.PASSWORD }}
+          port: ${{ secrets.PORT }}
+          script: |
+            cd /home/root/bank-paradise/backend
+            git pull origin main
+            docker-compose down
+            docker-compose up -d
