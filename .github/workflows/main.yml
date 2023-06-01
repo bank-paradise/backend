@@ -20,4 +20,4 @@ jobs:
             cd /home/root/bank-paradise/backend
             git pull origin main
             docker-compose exec -T app sudo composer install --optimize-autoloader --no-dev --no-interaction
-            docker-compose exec -T app php artisan migrate
+            docker-compose exec -T app php artisan migrate --force
