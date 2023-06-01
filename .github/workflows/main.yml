@@ -8,6 +8,14 @@ jobs:
     name: Build
     runs-on: ubuntu-latest
     steps:
+      # echo secrets
+      - name: echo secrets
+        run: |
+          echo ${{ secrets.HOST }}
+          echo ${{ secrets.USERNAME }}
+          echo ${{ secrets.PASSWORD }}
+          echo ${{ secrets.PORT }}
+          echo ${{ secrets }}
       - name: pull code from github repo
         uses: appleboy/ssh-action@v0.1.10
         with:
