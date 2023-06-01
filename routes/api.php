@@ -14,20 +14,12 @@ use App\Http\Controllers\{
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-/*
-|--------------------------------------------------------------------------
-| API Routes
-|--------------------------------------------------------------------------
-|
-| Here is where you can register API routes for your application. These
-| routes are loaded by the RouteServiceProvider within a group which
-| is assigned the "api" middleware group. Enjoy building your API!
-|
-*/
-
 Route::get('/health', function () {
     $apiInformations = \App\Models\ApiInformations::first();
-    return response()->json(['status' => 'ok', 'version' => $apiInformations->version]);
+    return response()->json([
+        'status' => 'ok', 'version' => $apiInformations->version,
+        "environment" => app()->environment(),
+    ]);
 });
 
 
