@@ -16,14 +16,8 @@ jobs:
         run: composer install --no-scripts --no-progress --prefer-dist
 
       - name: Run syntax check
-        run: |
-          errors=$(find . -name "*.php" -not -path "./vendor/*" -type f -exec sh -c 'php -l "{}" || echo "Error in file: {}"' \; 2>&1 | grep -v "No syntax errors detected")
-          if [ -z "$errors" ]; then
-            echo "No syntax errors detected. Success!"
-          else
-            echo "$errors"
-            exit 1
-          fi
+        run: php -l .
+
       - name: Pull code and deploy
         uses: appleboy/ssh-action@v0.1.10
         with:
