@@ -1,0 +1,15 @@
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deploy:
+    runs-on: self-hosted
+
+    steps:
+      - name: Récupération du référentiel
+        uses: actions/checkout@v2
+
+      - name: Exécution du playbook Ansible
+        run: cd /home/ubuntu/bank-paradise/ansible && ansible-playbook playbook.yml -i inventaire.yml -u root
